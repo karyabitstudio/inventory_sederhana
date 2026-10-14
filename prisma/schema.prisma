@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum StokType {
+  MASUK
+  KELUAR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stokLogs  StokLog[]
+
+  @@map("users")
+}
+
+model Barang {
+  id          String   @id @default(cuid())
+  kode        String   @unique
+  nama        String
+  kategori    String?
+  satuan      String   @default("pcs")
+  stok        Int      @default(0)
+  stokMinimum Int      @default(5)
+  hargaBeli   Decimal? @db.Decimal(15, 2)
+  hargaJual   Decimal? @db.Decimal(15, 2)
+  deskripsi   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stokLogs    StokLog[]
+
+  @@map("barang")
+}
+
+model StokLog {
+  id         String   @id @default(cuid())
+  barangId   String
+  userId     String
+  type       StokType
+  jumlah     Int
+  keterangan String?
+  createdAt  DateTime @default(now())
+
+  barang     Barang   @relation(fields: [barangId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@map("stok_logs")
+}
